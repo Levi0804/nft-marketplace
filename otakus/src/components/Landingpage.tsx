@@ -3,7 +3,7 @@ import LandingPageHeroSection from "./Herosection";
 
 export function Landingpage() {
   return (
-    <div className="w-full">
+    <div className="w-full bg-black">
       <section className="px-10 py-5 flex">
         <div className="items-start">
           <a href="/" className="font-bold text-primary text-yellow-500 px-20 py-10 m-4 text-4xl tracking-wider ms-4">Otakus</a><br/>

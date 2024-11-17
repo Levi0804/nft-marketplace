@@ -12,9 +12,9 @@ export default function LandingPageHeroSection() {
                             Explore the world&apos;s Pokemon NFT marketplace.Buy and sell digital pokemon images,collectibles, and more with ease and security.
                         </p>
                         <div className="flex flex-wrap gap-4">
-                            <button  className="bg-yellow-500 text-black text-xl p-4 rounded-lg">
+                            <a  href="/NFTmarketplace"className="bg-yellow-500 text-black text-xl p-4 rounded-lg">
                                 Explore NFTs
-                            </button>
+                            </a>
                             <button className="text-xl">
                                 Create NFT
                             </button>
