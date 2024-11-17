@@ -31,7 +31,8 @@ export function Landingpage(): JSX.Element {
 
   // Initialize wallet connection
   const connectWallet = async (): Promise<void> => {
-    if (!checkPetraWallet()) {
+      if (!checkPetraWallet()) {
+          alert("Wallet connected!)");
       return;
     }
 
@@ -47,7 +48,8 @@ export function Landingpage(): JSX.Element {
       }
 
       setAddress(account.address);
-      setConnected(true);
+        setConnected(true);
+        alert("Wallet connected!");
       console.log("Connected successfully!", response);
     } catch (error) {
       console.error("Error connecting wallet:", error);

@@ -1,0 +1,9 @@
+{
+  "name": "Your NFT Collection Name #1",
+  "description": "Description of your NFT collection",
+  "image": "ipfs://YOUR_IMAGES_CID/vite.svg",
+  "edition": 1,
+  "date": 1731840833829,
+  "attributes": [],
+  "compiler": "Your NFT Collection"
+}

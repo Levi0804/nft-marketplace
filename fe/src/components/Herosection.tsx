@@ -15,9 +15,9 @@ export default function LandingPageHeroSection() {
                             <a  href="/NFTmarketplace"className="bg-yellow-500 text-black text-xl p-4 rounded-lg">
                                 Explore NFTs
                             </a>
-                            <button className="text-xl">
+                            <a href="/create" className="text-xl p-4">
                                 Create NFT
-                            </button>
+                            </a>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 sm:gap-6">

@@ -1,0 +1,8 @@
+{
+  "name": "Your NFT Collection Name",
+  "description": "Description of your NFT collection",
+  "image": "ipfs://YOUR_IMAGES_CID/collection-logo.svg",
+  "external_link": "https://your-website.com",
+  "seller_fee_basis_points": 250,
+  "fee_recipient": "YOUR_WALLET_ADDRESS"
+}
