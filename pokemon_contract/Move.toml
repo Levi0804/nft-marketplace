@@ -1,0 +1,10 @@
+[package]
+name = "pokemon_marketplace"
+version = "1.0.0"
+
+[dependencies]
+AptosFramework = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-framework/", rev = "devnet" }
+AptosTokenObjects = { git = "https://github.com/aptos-labs/aptos-core.git", subdir = "aptos-move/framework/aptos-token-objects/", rev = "devnet" }
+
+[addresses]
+pokemon_marketplace = "_"

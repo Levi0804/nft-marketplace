@@ -1,227 +1,255 @@
-module pokemon::main { 
-    use aptos_framework::event;
+module pokemon_marketplace::main {
+    use std::error;
+    use std::signer;
+    use std::string::{Self, String};
+    use std::vector;
+    use aptos_framework::account;
+    use aptos_framework::event::{Self, EventHandle};
     use aptos_framework::object::{Self, ExtendRef, Object};
+    use aptos_framework::coin;
+    use aptos_framework::aptos_coin::AptosCoin;
     use aptos_token_objects::collection;
-    use aptos_token_objects::token::{Token, Self};
+    use aptos_token_objects::token;
     use std::option;
-    use std::signer::address_of;
-    use std::string::{String, utf8};
 
-    /// Pokemon not exist at given address
-    const EPOKEMON_NOT_EXIST: u64 = 1;
+    /// Error codes
+    const ENOT_AUTHORIZED: u64 = 1;
+    const EPOKEMON_NOT_EXIST: u64 = 2;
+    const EPRICE_INVALID: u64 = 3;
+    const EINSUFFICIENT_FUNDS: u64 = 4;
+    const EINVALID_POKEMON_ID: u64 = 5;
+    const EPOKEMON_ALREADY_LISTED: u64 = 6;
 
-    const APP_OBJECT_SEED: vector<u8> = b"POKEMON";
-    const POKEMON_COLLECTION_NAME: vector<u8> = b"Pokemon Collection";
-    const POKEMON_COLLECTION_DESCRIPTION: vector<u8> = b"This is a collection of pokemon nfts";
+    const MAX_POKEMON: u64 = 16;
 
-    struct PokemonData has copy, drop, key, store {
-        uri: String, // link to json containting metadata such as image link etc.
-    }
+    // Collection constants
+    const COLLECTION_NAME: vector<u8> = b"Pokemon Collection V1";
+    const COLLECTION_DESCRIPTION: vector<u8> = b"A collection of unique Pokemon NFTs";
+    const COLLECTION_URI: vector<u8> = b"https://xxplwdmjiahdwvjqlivi.supabase.co/storage/v1/object/public/pokemon-nfts/collection.svg";
+    const SEED: vector<u8> = b"POKEMON_NFT_V1";
 
+    #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
     struct Pokemon has key {
-        data: PokemonData,
-        extend_ref: ExtendRef,
+        name: String,
+        description: String,
+        pokemon_id: u64,
+        price: u64,
         mutator_ref: token::MutatorRef,
         burn_ref: token::BurnRef,
+        extend_ref: ExtendRef,
+    }
+
+    #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
+    struct PokemonURIs has key {
+        uris: vector<String>,
+    }
+
+    #[resource_group_member(group = aptos_framework::object::ObjectGroup)]
+    struct MarketplaceData has key {
+        mint_events: EventHandle<MintPokemonEvent>,
+        sale_events: EventHandle<PokemonSoldEvent>,
+        listing_events: EventHandle<PokemonListedEvent>,
+        signer_cap: ExtendRef,
     }
 
     #[event]
     struct MintPokemonEvent has drop, store {
-        pokemon_address: address,
+        pokemon_id: u64,
+        creator: address,
         token_name: String,
+        price: u64,
     }
 
-     struct CollectionCapability has key {
-        extend_ref: ExtendRef,
+    #[event]
+    struct PokemonSoldEvent has drop, store {
+        pokemon_id: u64,
+        seller: address,
+        buyer: address,
+        price: u64,
     }
 
-    // This function is only called once when the module is published for the first time.
-    fun init_module(account: &signer) {
-        let constructor_ref = object::create_named_object(
-            account,
-            APP_OBJECT_SEED,
-        );
+    #[event]
+    struct PokemonListedEvent has drop, store {
+        pokemon_id: u64,
+        seller: address,
+        price: u64,
+    }
+
+    fun init_module(creator: &signer) {
+        let creator_addr = signer::address_of(creator);
+        
+        // Create the main object that will store marketplace data
+        let constructor_ref = object::create_named_object(creator, SEED);
         let extend_ref = object::generate_extend_ref(&constructor_ref);
-        let app_signer = &object::generate_signer(&constructor_ref);
+        let marketplace_signer = object::generate_signer(&constructor_ref);
 
-        move_to(app_signer, CollectionCapability {
-            extend_ref,
+        // Create the collection
+        collection::create_unlimited_collection(
+            &marketplace_signer,
+            string::utf8(COLLECTION_DESCRIPTION),
+            string::utf8(COLLECTION_NAME),
+            option::none(),
+            string::utf8(COLLECTION_URI),
+        );
+
+        // Initialize URIs
+        move_to(&marketplace_signer, PokemonURIs {
+            uris: initialize_pokemon_uris(),
         });
 
-        create_pokemon_collection(app_signer);
+        // Initialize marketplace data with correct event handles
+        move_to(&marketplace_signer, MarketplaceData {
+            mint_events: account::new_event_handle<MintPokemonEvent>(creator),
+            sale_events: account::new_event_handle<PokemonSoldEvent>(creator),
+            listing_events: account::new_event_handle<PokemonListedEvent>(creator),
+            signer_cap: extend_ref,
+        });
     }
 
-    fun get_collection_address(): address {
-        object::create_object_address(&@pokemon, APP_OBJECT_SEED)
+    fun initialize_pokemon_uris(): vector<String> {
+        let uris = vector::empty<String>();
+        let base_uri = b"https://xxplwdmjiahdwvjqlivi.supabase.co/storage/v1/object/public/pokemon-nfts/";
+        
+        let i = 0;
+        while (i < MAX_POKEMON) {
+            let uri = string::utf8(base_uri);
+            string::append(&mut uri, string::utf8(vector::empty<u8>()));
+            string::append_utf8(&mut uri, vector::singleton((i + 86) as u8));
+            string::append(&mut uri, string::utf8(b".svg"));
+            vector::push_back(&mut uris, uri);
+            i = i + 1;
+        };
+        
+        uris
     }
 
-    fun get_collection_signer(collection_address: address): signer acquires CollectionCapability {
-        object::generate_signer_for_extending(&borrow_global<CollectionCapability>(collection_address).extend_ref)
-    }
+    public entry fun create_pokemon(
+        creator: &signer,
+        pokemon_id: u64,
+        name: String,
+        description: String,
+        price: u64,
+    ) acquires PokemonURIs, MarketplaceData {
+        // Validate inputs
+        assert!(pokemon_id > 0 && pokemon_id <= MAX_POKEMON, error::invalid_argument(EINVALID_POKEMON_ID));
+        assert!(price > 0, error::invalid_argument(EPRICE_INVALID));
 
-    fun get_pokemon_signer(pokemon_address: address): signer acquires Pokemon {
-        object::generate_signer_for_extending(&borrow_global<Pokemon>(pokemon_address).extend_ref)
-    }
+        let collection_addr = object::create_object_address(&@pokemon_marketplace, SEED);
+        let uris = &borrow_global<PokemonURIs>(collection_addr).uris;
+        let uri = *vector::borrow(uris, (pokemon_id - 1) as u64);
 
-    fun create_pokemon_collection(creator: &signer) {
-        let description = utf8(POKEMON_COLLECTION_DESCRIPTION);
-        let name = utf8(POKEMON_COLLECTION_NAME);
-        let uri = utf8(b"https://whatarethesewordsbardock/pokemon.png"); // represents the collection
-
-        collection::create_unlimited_collection(
+        // Create token
+        let constructor_ref = token::create_named_token(
             creator,
+            string::utf8(COLLECTION_NAME),
             description,
             name,
             option::none(),
             uri,
+        );
+
+        let token_signer = object::generate_signer(&constructor_ref);
+        
+        // Create Pokemon object
+        let pokemon = Pokemon {
+            name,
+            description,
+            pokemon_id,
+            price,
+            mutator_ref: token::generate_mutator_ref(&constructor_ref),
+            burn_ref: token::generate_burn_ref(&constructor_ref),
+            extend_ref: object::generate_extend_ref(&constructor_ref),
+        };
+
+        move_to(&token_signer, pokemon);
+
+        // Emit mint event
+        let market_data = borrow_global_mut<MarketplaceData>(collection_addr);
+        event::emit_event(
+            &mut market_data.mint_events,
+            MintPokemonEvent {
+                pokemon_id,
+                creator: signer::address_of(creator),
+                token_name: name,
+                price,
+            },
         );
     }
 
-    // Create an Pokemon token object.
-    // Because this function calls random it must not be public.
-    // This ensures user can only call it from a transaction instead of another contract.
-    // This prevents users seeing the result of mint and act on it, e.g. see the result and abort the tx if they don't like it.
-    entry fun create_pokemon(user: &signer, name: String, uri: String) acquires CollectionCapability {
-        let description = utf8(POKEMON_COLLECTION_DESCRIPTION);
-        let data = PokemonData {
-            uri,
-        };
+    public entry fun buy_pokemon(
+        buyer: &signer,
+        pokemon_obj: Object<Pokemon>,
+    ) acquires Pokemon, MarketplaceData {
+        let pokemon_addr = object::object_address(&pokemon_obj);
+        let pokemon = borrow_global<Pokemon>(pokemon_addr);
+        
+        // Verify pokemon exists and price
+        assert!(object::is_owner(pokemon_obj, signer::address_of(buyer)), error::not_found(EPOKEMON_NOT_EXIST));
+        assert!(coin::balance<AptosCoin>(signer::address_of(buyer)) >= pokemon.price, 
+               error::invalid_argument(EINSUFFICIENT_FUNDS));
+        
+        let seller = object::owner(pokemon_obj);
 
-        let collection_address = get_collection_address();
-        let constructor_ref = &token::create(
-            &get_collection_signer(collection_address),
-            utf8(POKEMON_COLLECTION_NAME),
-            description,
-            name,
-            option::none(),
-            uri,
-        );
+        // Transfer payment
+        coin::transfer<AptosCoin>(buyer, seller, pokemon.price);
 
-        let token_signer_ref = &object::generate_signer(constructor_ref);
-
-        let extend_ref = object::generate_extend_ref(constructor_ref);
-        let mutator_ref = token::generate_mutator_ref(constructor_ref);
-        let burn_ref = token::generate_burn_ref(constructor_ref);
-        let transfer_ref = object::generate_transfer_ref(constructor_ref);
-
-        // Initialize and set default Pokemon struct values
-        let pokemon = Pokemon {
-            data,
-            extend_ref,
-            mutator_ref,
-            burn_ref,
-        };
-        move_to(token_signer_ref, pokemon);
-
-        // Emit event for minting Pokemon token
-        event::emit(
-            MintPokemonEvent {
-                pokemon_address: address_of(token_signer_ref),
-                token_name: name,
+        // Emit sale event
+        let collection_addr = object::create_object_address(&@pokemon_marketplace, SEED);
+        let market_data = borrow_global_mut<MarketplaceData>(collection_addr);
+        event::emit_event(
+            &mut market_data.sale_events,
+            PokemonSoldEvent {
+                pokemon_id: pokemon.pokemon_id,
+                seller,
+                buyer: signer::address_of(buyer),
+                price: pokemon.price,
             },
         );
 
-        // Transfer the Pokemon to the user
-        object::transfer_with_ref(object::generate_linear_transfer_ref(&transfer_ref), address_of(user));
+        // Transfer Pokemon
+        object::transfer(buyer, pokemon_obj, signer::address_of(buyer));
     }
 
-    // Purchase outright an item from a fixed price listing.
-    // Purchase function to be implmented 
-    // this is the function signature
-    // public entry fun purchase<CoinType>(
-    //     purchaser: &signer,
-    //     object: object::Object<object::ObjectCore>,
-    // ) acquires FixedPriceListing, Listing, SellerListings, Sellers {
+    public entry fun list_pokemon(
+        seller: &signer,
+        pokemon_obj: Object<Pokemon>,
+        new_price: u64,
+    ) acquires Pokemon, MarketplaceData {
+        let pokemon_addr = object::object_address(&pokemon_obj);
         
-    // }
+        // Verify ownership and price
+        assert!(object::is_owner(pokemon_obj, signer::address_of(seller)), 
+               error::permission_denied(ENOT_AUTHORIZED));
+        assert!(new_price > 0, error::invalid_argument(EPRICE_INVALID));
 
+        let pokemon = borrow_global_mut<Pokemon>(pokemon_addr);
+        assert!(pokemon.price == 0, error::invalid_argument(EPOKEMON_ALREADY_LISTED));
+        
+        // Update price
+        pokemon.price = new_price;
 
-    // Get collection name of pokemon collection
-    #[view]
-    public fun get_pokemon_collection_name(): (String) {
-        utf8(POKEMON_COLLECTION_NAME)
+        // Emit listing event
+        let collection_addr = object::create_object_address(&@pokemon_marketplace, SEED);
+        let market_data = borrow_global_mut<MarketplaceData>(collection_addr);
+        event::emit_event(
+            &mut market_data.listing_events,
+            PokemonListedEvent {
+                pokemon_id: pokemon.pokemon_id,
+                seller: signer::address_of(seller),
+                price: new_price,
+            },
+        );
     }
 
-    // Get creator address of pokemon collection
     #[view]
-    public fun get_pokemon_collection_creator_address(): (address) {
-        get_collection_address()
+    public fun get_pokemon_price(pokemon_obj: Object<Pokemon>): u64 acquires Pokemon {
+        let pokemon = borrow_global<Pokemon>(object::object_address(&pokemon_obj));
+        pokemon.price
     }
 
-    // Get collection ID of pokemon collection
     #[view]
-    public fun get_pokemon_collection_address(): (address) {
-        let collection_name = utf8(POKEMON_COLLECTION_NAME);
-        let creator_address = get_collection_address();
-        collection::create_collection_address(&creator_address, &collection_name)
+    public fun get_pokemon_details(pokemon_obj: Object<Pokemon>): (u64, String, String, u64) acquires Pokemon {
+        let pokemon = borrow_global<Pokemon>(object::object_address(&pokemon_obj));
+        (pokemon.pokemon_id, pokemon.name, pokemon.description, pokemon.price)
     }
-
-    // Returns all fields for this Pokemon (if found)
-    #[view]
-    public fun get_pokemon(pokemon_obj: Object<Token>): (String, PokemonData) acquires Pokemon {
-        let pokemon_address = object::object_address(&pokemon_obj);
-        assert!(object::object_exists<Token>(pokemon_address), EPOKEMON_NOT_EXIST);
-        let pokemon = borrow_global<Pokemon>(pokemon_address);
-        (token::name<Token>(pokemon_obj), pokemon.data)
-    }
-
-    // #[test_only]
-    // use std::debug;
-    // #[test_only]
-    // use std::signer;
-    // #[test_only]
-    // const THIS_FAILS: u64 = 1;
-
-    // // this test also fails
-    // #[test(caller = @0x9000)]
-    // #[expected_failure(abort_code = THIS_FAILS)]
-    // fun test(caller: &signer)  acquires CollectionCapability {
-    //     init_module(caller);
-
-    //     let collection_address = get_collection_address();
-
-    //     let description = utf8(POKEMON_COLLECTION_DESCRIPTION);
-    //     let name = utf8(POKEMON_COLLECTION_NAME);
-    //     let uri = utf8(b"https://whatarethesewordsbardock/pokemon.png"); 
-
-    //     let constructor_ref = &token::create(
-    //         &get_collection_signer(collection_address),
-    //         utf8(POKEMON_COLLECTION_NAME),
-    //         description,
-    //         name,
-    //         option::none(),
-    //         uri,
-    //     );  // ConstructorRef 
-
-    //     let data = PokemonData {
-    //         uri,
-    //     };
-
-    //     let extend_ref = object::generate_extend_ref(constructor_ref);
-    //     let mutator_ref = token::generate_mutator_ref(constructor_ref);
-    //     let burn_ref = token::generate_burn_ref(constructor_ref);
-    //     let transfer_ref = object::generate_transfer_ref(constructor_ref);
-
-    //     let pokemon = Pokemon {
-    //         data,
-    //         extend_ref,
-    //         mutator_ref,
-    //         burn_ref,
-    //     };
-
-    //     move_to(caller, pokemon);
-
-    //     let object = object::object_from_constructor_ref<Token>(
-    //         constructor_ref
-    //     ); // Object<Token>
-
-    //     debug::print(&object);
-
-    //     // let (string, data) = get_pokemon(object);
-
-    //     // object::transfer(caller, object, collection_address);
-
-    // }
 }
-
-    

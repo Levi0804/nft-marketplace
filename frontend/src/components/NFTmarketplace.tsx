@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { AptosClient, Types } from 'aptos';
+
+// Contract Constants
+const MODULE_ADDRESS = "0x0d8e036d15b11ff270283fb9bd6c5c620d98fd6a871b1494546425cc064b1d34";
+const MODULE_NAME = "pokemon_marketplace";
 
 // Type definitions for Petra Wallet
 type PetraWallet = {
   connect: () => Promise<{ address: string }>;
   account: () => Promise<{ address: string }>;
   disconnect: () => Promise<void>;
+  signAndSubmitTransaction: (transaction: Types.TransactionPayload) => Promise<{ hash: string }>;
 };
 
 declare global {
@@ -13,14 +19,16 @@ declare global {
   }
 }
 
-interface NFTCardProps {
+// NFT Card Component for displaying individual NFTs
+type NFTCardProps = {
   src: string;
   index: number;
   isWalletConnected: boolean;
   onBuyClick: (index: number) => void;
-}
+  isLoading: boolean;
+};
 
-const NFTCard: React.FC<NFTCardProps> = ({ src, index, isWalletConnected, onBuyClick }) => (
+const NFTCard: React.FC<NFTCardProps> = ({ src, index, isWalletConnected, onBuyClick, isLoading }) => (
   <div className="overflow-hidden rounded-xl bg-white shadow-lg h-96 w-96 transition-transform hover:scale-105 justify-center items-center">
     <img 
       src={src} 
@@ -31,20 +39,26 @@ const NFTCard: React.FC<NFTCardProps> = ({ src, index, isWalletConnected, onBuyC
       <button 
         onClick={() => onBuyClick(index)}
         className={`bg-yellow-500 text-xl rounded-xl justify-center p-4 items-center
-          ${!isWalletConnected ? 'opacity-50 cursor-not-allowed' : 'hover:bg-yellow-600'}`}
-        disabled={!isWalletConnected}
+          ${!isWalletConnected ? 'opacity-50 cursor-not-allowed' : 'hover:bg-yellow-600'}
+          ${isLoading ? 'cursor-wait' : ''}`}
+        disabled={!isWalletConnected || isLoading}
       >
-        BUY
+        {isLoading ? 'Processing...' : 'BUY'}
       </button>
       <h1 className="p-4">Price: {index + 1} Apt</h1>
     </div>
   </div>
 );
 
-export const NFTmarketplace: React.FC = () => {
+// Main Component for the NFT Marketplace
+const NFTMarketplace: React.FC = () => {
   const [address, setAddress] = useState<string>("");
   const [connected, setConnected] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+
+  // Initialize Aptos Client
+  const client = new AptosClient('https://fullnode.devnet.aptoslabs.com/v1');
 
   const checkPetraWallet = (): boolean => {
     if ("petra" in window) {
@@ -91,15 +105,34 @@ export const NFTmarketplace: React.FC = () => {
     }
   };
 
-  const handleBuyClick = async (index: number) => {
-    if (!connected) {
-      setError("Please connect your wallet first");
+  const buyPokemon = async (pokemonObjAddress) => {
+    if (!address) {
+      alert("Please connect your wallet!");
       return;
     }
-    
-    // Add your NFT purchase logic here
-    console.log(`Attempting to buy NFT ${index + 1} for ${index + 1} APT`);
-    // You would typically interact with a smart contract here
+
+    setIsLoading(true);
+
+    try {
+      // Construct the payload for buying the Pokemon
+      const payload = {
+        type: "entry_function_payload",
+        function: `${MODULE_ADDRESS}::${MODULE_NAME}::buy_pokemon`,
+        type_arguments: [],
+        arguments: [pokemonObjAddress], // Pass the address of the Pokemon object
+      };
+
+      // Sign and submit the transaction
+      const response = await window.petra?.signAndSubmitTransaction(payload);
+      if (response) {
+        alert("Purchase successful!");
+        await fetchPokemons();
+      }
+    } catch (error) {
+      alert("Error during purchase: " + error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const formatAddress = (addr: string): string => {
@@ -108,39 +141,37 @@ export const NFTmarketplace: React.FC = () => {
   };
 
   const NFT_IMAGES = [
-    "/poki/8.svg",
-    "/poki/3.svg",
-    "/poki/25.svg",
-    "/poki/492.svg",
-    "/poki/45.svg",
-    "/poki/31.svg",
-    "/poki/78.svg",
-    "/poki/453.svg",
+    "/poki/86.svg",
+    "/poki/87.svg",
+    "/poki/88.svg",
+    "/poki/89.svg",
+    "/poki/90.svg",
+    "/poki/91.svg",
+    "/poki/92.svg",
+    "/poki/93.svg",
+    "/poki/94.svg",
+    "/poki/95.svg",
+    "/poki/96.svg",
+    "/poki/97.svg",
+    "/poki/98.svg",
     "/poki/99.svg",
-    "/poki/642.svg",
-    "/poki/83.svg",
-    "/poki/563.svg",
-    "/poki/440.svg",
-    "/poki/323.svg",
-    "/poki/251.svg",
-    "/poki/648.svg",
+    "/poki/100.svg",
+    "/poki/101.svg",
   ];
 
   return (
     <section className="h-screen w-full mb-4">
       <div className="flex justify-center m-4">
-        <h1 className="font-bold text-5xl">NFTMARKETPLACE</h1>
+        <h1 className="font-bold text-5xl">NFT MARKETPLACE</h1>
       </div>
       <div className="flex flex-col items-center p-8">
-        <button 
+        <button
           onClick={connected ? disconnectWallet : connectWallet}
           className="bg-yellow-500 hover:bg-yellow-600 text-xl p-4 rounded-xl transition-colors"
         >
           {connected ? `Connected: ${formatAddress(address)}` : "Connect Wallet"}
         </button>
-        {error && (
-          <p className="text-red-500 mt-2">{error}</p>
-        )}
+        {error && <p className="text-red-500 mt-2">{error}</p>}
       </div>
       <div className="flex justify-center">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -150,7 +181,8 @@ export const NFTmarketplace: React.FC = () => {
               src={src}
               index={index}
               isWalletConnected={connected}
-              onBuyClick={handleBuyClick}
+              onBuyClick={buyPokemon}
+              isLoading={isLoading}
             />
           ))}
         </div>
@@ -158,3 +190,5 @@ export const NFTmarketplace: React.FC = () => {
     </section>
   );
 };
+
+export default NFTMarketplace;
