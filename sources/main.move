@@ -125,6 +125,17 @@ module pokemon::main {
         object::transfer_with_ref(object::generate_linear_transfer_ref(&transfer_ref), address_of(user));
     }
 
+    // Purchase outright an item from a fixed price listing.
+    // Purchase function to be implmented 
+    // this is the function signature
+    // public entry fun purchase<CoinType>(
+    //     purchaser: &signer,
+    //     object: object::Object<object::ObjectCore>,
+    // ) acquires FixedPriceListing, Listing, SellerListings, Sellers {
+        
+    // }
+
+
     // Get collection name of pokemon collection
     #[view]
     public fun get_pokemon_collection_name(): (String) {
@@ -154,4 +165,63 @@ module pokemon::main {
         (token::name<Token>(pokemon_obj), pokemon.data)
     }
 
+    // #[test_only]
+    // use std::debug;
+    // #[test_only]
+    // use std::signer;
+    // #[test_only]
+    // const THIS_FAILS: u64 = 1;
+
+    // // this test also fails
+    // #[test(caller = @0x9000)]
+    // #[expected_failure(abort_code = THIS_FAILS)]
+    // fun test(caller: &signer)  acquires CollectionCapability {
+    //     init_module(caller);
+
+    //     let collection_address = get_collection_address();
+
+    //     let description = utf8(POKEMON_COLLECTION_DESCRIPTION);
+    //     let name = utf8(POKEMON_COLLECTION_NAME);
+    //     let uri = utf8(b"https://whatarethesewordsbardock/pokemon.png"); 
+
+    //     let constructor_ref = &token::create(
+    //         &get_collection_signer(collection_address),
+    //         utf8(POKEMON_COLLECTION_NAME),
+    //         description,
+    //         name,
+    //         option::none(),
+    //         uri,
+    //     );  // ConstructorRef 
+
+    //     let data = PokemonData {
+    //         uri,
+    //     };
+
+    //     let extend_ref = object::generate_extend_ref(constructor_ref);
+    //     let mutator_ref = token::generate_mutator_ref(constructor_ref);
+    //     let burn_ref = token::generate_burn_ref(constructor_ref);
+    //     let transfer_ref = object::generate_transfer_ref(constructor_ref);
+
+    //     let pokemon = Pokemon {
+    //         data,
+    //         extend_ref,
+    //         mutator_ref,
+    //         burn_ref,
+    //     };
+
+    //     move_to(caller, pokemon);
+
+    //     let object = object::object_from_constructor_ref<Token>(
+    //         constructor_ref
+    //     ); // Object<Token>
+
+    //     debug::print(&object);
+
+    //     // let (string, data) = get_pokemon(object);
+
+    //     // object::transfer(caller, object, collection_address);
+
+    // }
 }
+
+    

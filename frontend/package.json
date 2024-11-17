@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@aptos-labs/wallet-adapter-react": "^3.7.4",
     "lucide-react": "^0.460.0",
     "petra-plugin-wallet-adapter": "^0.4.5",
     "react": "^18.3.1",
