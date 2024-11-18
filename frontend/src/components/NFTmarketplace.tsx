@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { AptosClient } from 'aptos';
 
-const MODULE_ADDRESS = "0x0d8e036d15b11ff270283fb9bd6c5c620d98fd6a871b1494546425cc064b1d34";
-const MODULE_NAME = "pokemon_marketplace";
+//const MODULE_ADDRESS = "0x0d8e036d15b11ff270283fb9bd6c5c620d98fd6a871b1494546425cc064b1d34";
+//const MODULE_NAME = "pokemon_marketplace";
 
 type PetraWallet = {
   connect: () => Promise<{ address: string }>;
@@ -13,7 +13,7 @@ type PetraWallet = {
 
 declare global {
   interface Window {
-    petra?: PetraWallet;
+    //petra?: PetraWallet;
   }
 }
 
@@ -84,7 +84,7 @@ const NFTMarketplace: React.FC = () => {
 
   const disconnectWallet = async (): Promise<void> => {
     try {
-      await window.petra?.disconnect();
+      //await window.petra?.disconnect();
       setAddress("");
       setConnected(false);
       setTxHash("");
@@ -120,9 +120,9 @@ const NFTMarketplace: React.FC = () => {
         type_arguments: []
       };
 
-      const response = await window.petra?.signAndSubmitTransaction(transaction);
+      const response: { hash: string } = await window.petra?.signAndSubmitTransaction(transaction) as { hash: string };
       
-      if (response?.hash) {
+      if (response.hash) {
         setTxHash(response.hash);
         await client.waitForTransaction(response.hash);
         alert(`Transaction successful! Amount: ${price} APT`);
