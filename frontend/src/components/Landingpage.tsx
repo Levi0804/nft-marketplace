@@ -4,6 +4,7 @@ import LandingPageHeroSection from "./Herosection";
 
 // Type definitions for Petra Wallet
 type PetraWallet = {
+  signAndSubmitTransaction(payload: { type: string; } & { function: string; type_arguments: Array<string>; arguments: Array<any>; }): unknown;
   connect: () => Promise<{ address: string }>;
   account: () => Promise<{ address: string }>;
   // Add other Petra wallet methods as needed
