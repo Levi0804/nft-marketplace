@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { AptosClient } from 'aptos';
 
-//const MODULE_ADDRESS = "0x0d8e036d15b11ff270283fb9bd6c5c620d98fd6a871b1494546425cc064b1d34";
-//const MODULE_NAME = "pokemon_marketplace";
+const MODULE_ADDRESS = "0x0d8e036d15b11ff270283fb9bd6c5c620d98fd6a871b1494546425cc064b1d34";
 
 type NFTCardProps = {
   src: string;
@@ -77,6 +76,7 @@ const NFTMarketplace: React.FC = () => {
       setTxHash("");
     } catch (error: any) {
       console.error("Error disconnecting wallet:", error);
+      console.log(MODULE_ADDRESS)
       setError(error.message || "Failed to disconnect wallet");
     }
   };
@@ -151,8 +151,12 @@ const NFTMarketplace: React.FC = () => {
     <section className="h-screen w-full mb-4">
       <div className="flex justify-center m-4">
         <h1 className="font-bold text-5xl">NFT MARKETPLACE</h1>
+        
       </div>
       <div className="flex flex-col items-center p-8">
+        <h2 className='font-bold text-3xl'>Purchase your favourite Pokemon NFT!</h2><br/>
+        <h4>*Please Try Devnet Transactions"*</h4>
+        <br/>
         <button
           onClick={connected ? disconnectWallet : connectWallet}
           className="bg-yellow-500 hover:bg-yellow-600 text-xl p-4 rounded-xl transition-colors"
