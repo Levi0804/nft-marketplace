@@ -46,3 +46,30 @@ Welcome to the **Pokémon NFT Marketplace**, a decentralized platform built on t
    ```bash
    git clone https://github.com/your-username/pokemon-nft-marketplace.git
    cd pokemon-nft-marketplace
+   ```
+
+2. **Set Up the Frontend**  
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+3. **Set Up the Smart Contracts**  
+   - First, install the [Aptos CLI](https://aptos.dev/cli-tools/aptos-cli-tool/).
+   - Follow the [Aptos documentation](https://aptos.dev/cli-tools/aptos-cli-tool/#installing-the-aptos-cli) to set up and configure your Aptos environment.
+   - Navigate to the smart contract directory and deploy the contract:
+     ```bash
+     cd pokemon_contract
+     aptos move publish --package-dir .
+     ```
+
+---
+
+## Contributing
+We welcome contributions from the community! Please feel free to open issues or submit pull requests.
+
+---
+
+
+Happy minting and trading!
