@@ -138,7 +138,7 @@ const NFTMarketplace: React.FC = () => {
     { src: "/poki/17.svg", price: 7 },
     { src: "/poki/445.svg", price: 8 },
     { src: "/poki/323.svg", price: 9 },
-    { src: "/poki/78.svg", price: 10 },
+    { src: "/poki/81.svg", price: 10 },
     { src: "/poki/100.svg", price: 11 },
     { src: "/poki/143.svg", price: 12 },
     { src: "/poki/135.svg", price: 13 },
