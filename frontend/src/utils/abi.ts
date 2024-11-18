@@ -1,5 +1,5 @@
 export const ABI={
-    "address": "0x433e88086524c15a79c96a8841ad1fb5e1d6917a7ca748adb138c3b776257989",
+    "address": "0x0d8e036d15b11ff270283fb9bd6c5c620d98fd6a871b1494546425cc064b1d34",
     "name": "main",
     "friends": [],
     "exposed_functions": [
