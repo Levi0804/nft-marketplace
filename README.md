@@ -13,13 +13,13 @@ Welcome to the **Pokémon NFT Marketplace**, a decentralized platform built on t
 2. **Frontend Interface**  
    A user-friendly interface to interact with the marketplace.
 
+3. **Purchasing NFTs**  
+   A feature for users to securely purchase listed NFTs using Aptos tokens.
+
 ### 🌟 Upcoming Features
 1. **Listing NFTs for Sale**  
    Users will soon be able to list their Pokémon NFTs for others to purchase.
    
-2. **Purchasing NFTs**  
-   A feature for users to securely purchase listed NFTs using Aptos tokens.
-
 ---
 
 ## Tech Stack
