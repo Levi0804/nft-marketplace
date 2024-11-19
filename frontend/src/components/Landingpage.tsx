@@ -1,16 +1,14 @@
-import { useState} from 'react';
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 import LandingPageFeatures from "./Features";
 import LandingPageHeroSection from "./Herosection";
 
-// Type definitions for Petra Wallet
 type PetraWallet = {
   signAndSubmitTransaction(payload: { type: string; } & { function: string; type_arguments: Array<string>; arguments: Array<any>; }): unknown;
   connect: () => Promise<{ address: string }>;
   account: () => Promise<{ address: string }>;
-  // Add other Petra wallet methods as needed
 };
 
-// Extend Window interface to include petra
 declare global {
   interface Window {
     petra?: PetraWallet;
@@ -20,8 +18,8 @@ declare global {
 export function Landingpage(): JSX.Element {
   const [address, setAddress] = useState<string>("");
   const [connected, setConnected] = useState<boolean>(false);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
-  // Check if Petra wallet is installed
   const checkPetraWallet = (): boolean => {
     if ("petra" in window) {
       return true;
@@ -30,10 +28,9 @@ export function Landingpage(): JSX.Element {
     return false;
   };
 
-  // Initialize wallet connection
   const connectWallet = async (): Promise<void> => {
-      if (!checkPetraWallet()) {
-          alert("Wallet connected!)");
+    if (!checkPetraWallet()) {
+      alert("Please install Petra wallet!");
       return;
     }
 
@@ -49,48 +46,71 @@ export function Landingpage(): JSX.Element {
       }
 
       setAddress(account.address);
-        setConnected(true);
-        alert("Wallet connected!");
+      setConnected(true);
+      alert("Wallet connected!");
       console.log("Connected successfully!", response);
     } catch (error) {
       console.error("Error connecting wallet:", error);
     }
   };
 
-  // Function to format address for display
   const formatAddress = (addr: string): string => {
     if (!addr) return "";
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
   };
 
   return (
-    <div className="w-full bg-black">
-      <section className="px-10 py-5 flex">
-        <div className="items-start">
-          <a href='/' className="font-bold text-primary text-yellow-500 px-20 py-10 m-4 text-4xl tracking-wider ms-4">
+    <div className="w-full bg-black min-h-screen">
+      {/* Navigation */}
+      <nav className="relative px-4 py-4 md:px-10 md:py-5">
+        <div className="flex items-center justify-between">
+          <a href='/' className="font-bold text-yellow-500 text-2xl md:text-4xl tracking-wider">
             NFTmarkertplace
           </a>
-        </div>
-        <div className="flex w-full justify-end">
+          
+          {/* Mobile menu button */}
           <button 
-            onClick={connectWallet}
-            className="bg-yellow-500 hover:bg-yellow-600 transition-colors rounded-xl px-4 mx-8 text-xl font-bold justify-end"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden text-white p-2"
           >
-            {connected ? formatAddress(address) : "Connect Wallet"}
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
+
+          {/* Desktop button */}
+          <div className="hidden md:block">
+            <button 
+              onClick={connectWallet}
+              className="bg-yellow-500 hover:bg-yellow-600 transition-colors rounded-xl px-4 py-2 text-xl font-bold"
+            >
+              {connected ? formatAddress(address) : "Connect Wallet"}
+            </button>
+          </div>
         </div>
-      </section>
-      <br />
-      <br/>
+
+        {/* Mobile menu */}
+        {isMenuOpen && (
+          <div className="absolute top-full left-0 right-0 bg-black p-4 md:hidden">
+            <button 
+              onClick={connectWallet}
+              className="w-full bg-yellow-500 hover:bg-yellow-600 transition-colors rounded-xl px-4 py-2 text-xl font-bold"
+            >
+              {connected ? formatAddress(address) : "Connect Wallet"}
+            </button>
+          </div>
+        )}
+      </nav>
+
       <LandingPageHeroSection />
       <LandingPageFeatures />
-      <footer className="py-12 px-6 bg-gray-800 backdrop-blur-md text-white ">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
-          <div>
+      
+      {/* Responsive Footer */}
+      <footer className="py-12 px-4 md:px-6 bg-gray-800 text-white">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 text-center md:text-left">
+          <div className="mb-6 md:mb-0">
             <h3 className="font-bold text-xl mb-4">PokéNFT World</h3>
             <p className="text-gray-300">The ultimate digital Pokémon trading experience</p>
           </div>
-          <div>
+          <div className="mb-6 md:mb-0">
             <h3 className="font-bold mb-4">Quick Links</h3>
             <ul className="space-y-2">
               <li><a href="#" className="text-gray-300 hover:text-yellow-300">Pokédex</a></li>
