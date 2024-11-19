@@ -8,3 +8,6 @@ AptosTokenObjects = { git = "https://github.com/aptos-labs/aptos-core.git", subd
 
 [addresses]
 pokemon_marketplace = "_"
+
+[dev-addresses]
+pokemon_marketplace = "0x9000"
