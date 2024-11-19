@@ -68,7 +68,7 @@ export function Landingpage(): JSX.Element {
       <section className="px-10 py-5 flex">
         <div className="items-start">
           <a href='/' className="font-bold text-primary text-yellow-500 px-20 py-10 m-4 text-4xl tracking-wider ms-4">
-            NFTmarkerplace
+            NFTmarkertplace
           </a>
         </div>
         <div className="flex w-full justify-end">
@@ -80,8 +80,34 @@ export function Landingpage(): JSX.Element {
           </button>
         </div>
       </section>
+      <br />
+      <br/>
       <LandingPageHeroSection />
       <LandingPageFeatures />
+      <footer className="py-12 px-6 bg-gray-800 backdrop-blur-md text-white ">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+          <div>
+            <h3 className="font-bold text-xl mb-4">PokéNFT World</h3>
+            <p className="text-gray-300">The ultimate digital Pokémon trading experience</p>
+          </div>
+          <div>
+            <h3 className="font-bold mb-4">Quick Links</h3>
+            <ul className="space-y-2">
+              <li><a href="#" className="text-gray-300 hover:text-yellow-300">Pokédex</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-yellow-300">Trading Guide</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-yellow-300">Battle Arena</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-bold mb-4">Community</h3>
+            <ul className="space-y-2">
+              <li><a href="#" className="text-gray-300 hover:text-yellow-300">Discord</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-yellow-300">Twitter</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-yellow-300">Blog</a></li>
+            </ul>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
