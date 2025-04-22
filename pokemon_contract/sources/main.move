@@ -39,6 +39,11 @@ module pokemon_marketplace::main {
         uris: vector<String>,
     }
 
+    struct FractionalShare {
+        owner: address,
+        share: u64,
+    }
+
     #[event]
     struct MintPokemonEvent has drop, store {
         pokemon_id: u64,
@@ -194,6 +199,26 @@ module pokemon_marketplace::main {
                 price: new_price,
             },
         );
+    }
+
+    fun fractionalize_pokemon(
+        owner: address,
+        pokemon_id: u64,
+        num_shares: u64,
+    ): vector<FractionalShare> {
+        assert!(num_shares > 0, error::invalid_argument(10)); 
+
+        let shares = vector::empty<FractionalShare>();
+        let i = 0;
+        while (i < num_shares) {
+            let share = FractionalShare {
+                owner,
+                share: 1, 
+            };
+            vector::push_back(&mut shares, share);
+            i = i + 1;
+        };
+        shares
     }
 
     #[view]
