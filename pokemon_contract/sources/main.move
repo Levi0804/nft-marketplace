@@ -22,7 +22,7 @@ module pokemon_marketplace::main {
 
     const COLLECTION_NAME: vector<u8> = b"Pokemon Collection V1";
     const COLLECTION_DESCRIPTION: vector<u8> = b"A collection of unique Pokemon NFTs";
-    const COLLECTION_URI: vector<u8> = b"https://xxplwdmjiahdwvjqlivi.supabase.co/storage/v1/object/public/pokemon-nfts/collection.svg";
+    const COLLECTION_URI: vector<u8> = b"https://uowzmkydtkkfpldhprmm.supabase.co/storage/v1/object/public/pokemon-nfts//8.svg";
     const SEED: vector<u8> = b"POKEMON_NFT_V1";
 
     struct Pokemon has key {
