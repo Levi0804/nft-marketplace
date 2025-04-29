@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { AptosClient } from 'aptos';
 
 const MODULE_ADDRESS = "0x0d8e036d15b11ff270283fb9bd6c5c620d98fd6a871b1494546425cc064b1d34";
-const SUPABASE_URL = "https://xxplwdmjiahdwvjqlivi.supabase.co/storage/v1/object/public/pokemon-nfts";
+const SUPABASE_URL = "https://uowzmkydtkkfpldhprmm.supabase.co/storage/v1/object/public/pokemon-nfts";
 
 type NFTCardProps = {
   src: string;
