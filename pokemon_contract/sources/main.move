@@ -87,7 +87,7 @@ module pokemon_marketplace::main {
 
     fun initialize_pokemon_uris(): vector<String> {
         let uris = vector::empty<String>();
-        let base_uri = b"https://xxplwdmjiahdwvjqlivi.supabase.co/storage/v1/object/public/pokemon-nfts/";
+        let base_uri = b"https://uowzmkydtkkfpldhprmm.supabase.co/storage/v1/object/public/pokemon-nfts/";
         
         let i = 0;
         while (i < MAX_POKEMON) {
